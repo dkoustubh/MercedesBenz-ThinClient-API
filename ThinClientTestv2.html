@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANDON – Trim 4</title>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@700;800;900&display=swap');
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            font-family: 'Inter', sans-serif;
+            background: #000;
+            overflow: hidden;
+        }
+
+        /* ================= SCREEN CONTROL ================= */
+        #screen-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            background: #f4f5f7;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* ================= ANDON SCREEN ================= */
+        .dashboard-container {
+            height: 100%;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .dashboard-table {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+            background: #fff;
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .production-table {
+            flex: 2;
+        }
+
+        .time-table {
+            flex: 1;
+        }
+
+        /* ================= HEADERS ================= */
+        .table-main-title {
+            background: linear-gradient(135deg, #000, #2c3e50);
+            color: #fff;
+            font-size: clamp(28px, 3vw, 42px);
+            padding: 18px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .column-header {
+            background: #e9ecef;
+            font-size: clamp(22px, 2.2vw, 34px);
+            padding: 16px;
+            text-align: center;
+            border-bottom: 2px solid #ced4da;
+        }
+
+        /* ================= ROWS ================= */
+        .row-label {
+            font-size: clamp(26px, 2.5vw, 38px);
+            font-weight: 800;
+            padding: 20px;
+            text-align: center;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            white-space: nowrap;
+        }
+
+        .data-value {
+            font-size: clamp(34px, 3.2vw, 52px);
+            font-weight: 900;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #dee2e6;
+            white-space: nowrap;
+        }
+
+        .big-value {
+            font-size: clamp(42px, 4vw, 64px);
+        }
+
+        /* ================= COLORS ================= */
+        .green-text {
+            color: #00b894;
+        }
+
+        .red-text {
+            color: #d63031;
+        }
+
+        /* ================= BREAKDOWN SCREEN ================= */
+        .breakdown-container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .breakdown-header {
+            background: #002b49;
+            color: white;
+            padding: 22px;
+            text-align: center;
+            border-bottom: 5px solid #00adef;
+        }
+
+        .breakdown-header h2 {
+            margin: 0;
+            font-size: clamp(26px, 3vw, 42px);
+            text-transform: uppercase;
+        }
+
+        .breakdown-grid {
+            flex: 1;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .breakdown-card {
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            font-weight: 900;
+        }
+
+        .card-label {
+            position: absolute;
+            top: 18px;
+            left: 18px;
+            font-size: clamp(20px, 2vw, 30px);
+            opacity: 0.85;
+        }
+
+        .card-content {
+            display: flex;
+            gap: 80px;
+            align-items: center;
+        }
+
+        .big-letter {
+            font-size: clamp(120px, 10vw, 180px);
+        }
+
+        .big-number {
+            font-size: clamp(100px, 8vw, 160px);
+        }
+
+        .logistics {
+            background: linear-gradient(135deg, #00b4eb, #0077a3);
+            color: #fff;
+        }
+
+        .maintenance {
+            background: linear-gradient(135deg, #ff9f43, #ff6b00);
+            color: #fff;
+        }
+
+        .quality {
+            background: linear-gradient(135deg, #ffffff, #e8e8e8);
+            color: #333;
+        }
+
+        .production {
+            background: linear-gradient(135deg, #ffd32a, #ffa801);
+            color: #000;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="screen-container">
+
+        <!-- ================= SCREEN 1 ================= -->
+        <div id="andon-screen" class="screen active">
+            <div class="dashboard-container">
+
+                <table class="dashboard-table production-table">
+                    <thead>
+                        <tr>
+                            <th colspan="4" class="table-main-title">
+                                Production Status – Trim 4
+                            </th>
+                        </tr>
+                        <tr>
+                            <th class="column-header">SHIFT</th>
+                            <th class="column-header">TARGET</th>
+                            <th class="column-header">DUE</th>
+                            <th class="column-header">ACTUAL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr id="row-shift-1">
+                            <td class="row-label">SHIFT 1</td>
+                            <td class="data-value green-text" id="s1-target">--</td>
+                            <td class="data-value" id="s1-due">--</td>
+                            <td class="data-value red-text" id="s1-actual">--</td>
+                        </tr>
+                        <tr id="row-shift-2">
+                            <td class="row-label">SHIFT 2</td>
+                            <td class="data-value green-text" id="s2-target">--</td>
+                            <td class="data-value" id="s2-due">--</td>
+                            <td class="data-value red-text" id="s2-actual">--</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <table class="dashboard-table time-table">
+                    <thead>
+                        <tr>
+                            <th class="column-header">TAKT</th>
+                            <th class="column-header">LEFT TIME</th>
+                            <th class="column-header">LOST TIME</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="data-value big-value green-text" id="takt-time">--:--</td>
+                            <td class="data-value big-value" id="left-time">--:--</td>
+                            <td class="data-value big-value red-text" id="lost-time">--:--</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+
+        <!-- ================= SCREEN 2 ================= -->
+        <div id="breakdown-screen" class="screen">
+            <div class="breakdown-container">
+
+                <div class="breakdown-header">
+                    <h2>Breakdown Alarm – Trim 4</h2>
+                </div>
+
+                <div class="breakdown-grid">
+
+                    <div class="breakdown-card logistics">
+                        <span class="card-label">Logistics</span>
+                        <div class="card-content">
+                            <span class="big-letter">L</span>
+                            <span class="big-number">0</span>
+                        </div>
+                    </div>
+
+                    <div class="breakdown-card maintenance">
+                        <span class="card-label">Maintenance</span>
+                        <div class="card-content">
+                            <span class="big-letter">M</span>
+                            <span class="big-number">1</span>
+                        </div>
+                    </div>
+
+                    <div class="breakdown-card quality">
+                        <span class="card-label">Quality</span>
+                        <div class="card-content">
+                            <span class="big-letter">Q</span>
+                            <span class="big-number">0</span>
+                        </div>
+                    </div>
+
+                    <div class="breakdown-card production">
+                        <span class="card-label">Production</span>
+                        <div class="card-content">
+                            <span class="big-letter">P</span>
+                            <span class="big-number">0</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ================= ROTATION SCRIPT ================= -->
+    <script>
+        const screens = [
+            { id: 'andon-screen', duration: 6000 },
+            { id: 'breakdown-screen', duration: 4000 }
+        ];
+
+        let current = 0;
+
+        function rotateScreens() {
+            document.getElementById(screens[current].id).classList.remove('active');
+            current = (current + 1) % screens.length;
+            document.getElementById(screens[current].id).classList.add('active');
+            setTimeout(rotateScreens, screens[current].duration);
+        }
+
+        // --- API INTEGRATION ---
+
+        const LINE_ID = 1;
+        // Use the local proxy endpoint. The Python script forwards this to 192.168.10.152
+        const API_URL = `/api/andon/${LINE_ID}`;
+        const REFRESH_RATE_MS = 2000;
+
+        // Add a status indicator to the DOM
+        const statusDiv = document.createElement('div');
+        statusDiv.style.position = 'fixed';
+        statusDiv.style.bottom = '10px';
+        statusDiv.style.right = '10px';
+        statusDiv.style.padding = '5px 10px';
+        statusDiv.style.borderRadius = '5px';
+        statusDiv.style.fontSize = '12px';
+        statusDiv.style.fontWeight = 'bold';
+        statusDiv.style.color = '#fff';
+        statusDiv.style.opacity = '0.7';
+        statusDiv.style.zIndex = '9999';
+        statusDiv.innerText = 'Connecting...';
+        statusDiv.style.backgroundColor = '#e67e22'; // Orange
+        document.body.appendChild(statusDiv);
+
+        function updateStatus(isSuccess, msg) {
+            if (isSuccess) {
+                statusDiv.innerText = '• Live Data';
+                statusDiv.style.backgroundColor = '#27ae60'; // Green
+            } else {
+                statusDiv.innerText = '⚠ Connection Error: ' + (msg || 'Unknown');
+                statusDiv.style.backgroundColor = '#c0392b'; // Red
+            }
+        }
+
+        function formatTime(totalSeconds) {
+            if (totalSeconds == null || isNaN(totalSeconds)) return "--:--";
+            const m = Math.floor(totalSeconds / 60);
+            const s = totalSeconds % 60;
+            return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        async function fetchAndonData() {
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    updateDashboard(result.data);
+                    updateStatus(true);
+                } else {
+                    console.error("API returned unsuccessful response", result);
+                    updateStatus(false, "Invalid Data");
+                }
+            } catch (error) {
+                console.error("Error fetching Andon data:", error);
+                updateStatus(false, "Network/CORS Error");
+            }
+        }
+
+        function updateDashboard(data) {
+            // Data fields: current_shift_id, target, actual, due, takt_Time_sec, total_loss_time_sec
+            const shiftId = data.current_shift_id;
+
+            // Determine IDs based on shift
+            let targetId, dueId, actualId;
+
+            if (shiftId === 1) {
+                targetId = 's1-target';
+                dueId = 's1-due';
+                actualId = 's1-actual';
+            } else if (shiftId === 2) {
+                targetId = 's2-target';
+                dueId = 's2-due';
+                actualId = 's2-actual';
+            } else {
+                console.warn("Unknown shift ID:", shiftId);
+                return;
+            }
+
+            // Update Shift Values
+            document.getElementById(targetId).textContent = data.target;
+            document.getElementById(dueId).textContent = data.due;
+            document.getElementById(actualId).textContent = data.actual;
+
+            // Update Time Values (Common for the screen)
+            document.getElementById('takt-time').textContent = formatTime(data.takt_Time_sec);
+            document.getElementById('lost-time').textContent = formatTime(data.total_loss_time_sec);
+        }
+
+        // Initial Fetch
+        fetchAndonData();
+
+        // Polling
+        setInterval(fetchAndonData, REFRESH_RATE_MS);
+
+        setTimeout(rotateScreens, screens[0].duration);
+    </script>
+
+</body>
+
+</html>
